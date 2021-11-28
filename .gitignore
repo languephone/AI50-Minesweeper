@@ -2,3 +2,4 @@ __pycache__/
 requirements.txt
 runner.py
 assets/
+test.py
