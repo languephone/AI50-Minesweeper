@@ -201,13 +201,14 @@ class MinesweeperAI():
         # Mark the cell as safe
         self.mark_safe(cell)
 
-        # Add a new sentence to the AI's knowledge base
+        # 1) Add a new sentence to the AI's knowledge base
         # based on the value of `cell` and `count`
         
         # Get neighbouring cells
         neighbouring_cells = set()
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
+                # Check that cell is within bounds of grid
                 if 0 <= i < self.height and 0 <= j < self.width:
                     # Prevent adding current cell to set
                     if (i, j) == cell:
@@ -219,12 +220,9 @@ class MinesweeperAI():
         
         # Remove cells known to be safe or mines
         for mine_cell in self.mines:
-            if mine_cell in new_sentence.cells:
-                new_sentence.cells.remove(mine_cell)
-                new_sentence.count -= 1
+            new_sentence.mark_mine(mine_cell)
         for safe_cell in self.safes:
-            if safe_cell in new_sentence.cells:
-                new_sentence.cells.remove(safe_cell)
+            new_sentence.mark_safe(safe_cell)
         
         self.knowledge.append(new_sentence)
         print(f"Adding {new_sentence} based on neighbouring cells")
@@ -235,21 +233,24 @@ class MinesweeperAI():
         # Run the following repeatedly until no changes detected:
         while True:
             starting_knowledge = copy.deepcopy(self.knowledge)
+            # 4) Mark any additional cells as safe or as mines
+            # if it can be concluded based on the AI's knowledge base
             self.refresh_knowledge()
             self.remove_stale_sentences()
+            # 5) add any new sentences to the AI's knowledge base
+            # if they can be inferred from existing knowledge
             self.infer_new_sentences()
+            # If no changes made to knowledge, then everything is up to date
             if self.knowledge == starting_knowledge:
                 break
             # Print statements to test logic
             print("Completed Loop")
-            print("Reprinting knowledge after updating known/unknown mines----")
+            print("Reprinting knowledge after updating sentences--------------")
             self.show_current_knowledge()
             
             # Stop loop if going to be infinite
-            if len(self.knowledge) > 20:
+            if len(self.knowledge) > 50:
                 break
-
-
 
     def make_safe_move(self):
         """
@@ -303,8 +304,10 @@ class MinesweeperAI():
                 print(f"Knowledge {position}: {sentence}")
 
     def refresh_knowledge(self):
-        # 4) Mark any additional cells as safe or as mines
-        # if it can be concluded based on the AI's knowledge base
+        """
+        4) Mark any additional cells as safe or as mines
+        if it can be concluded based on the AI's knowledge base
+        """
         starting_knowledge = copy.deepcopy(self.knowledge)
         for sentence in starting_knowledge:
             for known_mine in sentence.known_mines():
@@ -315,8 +318,10 @@ class MinesweeperAI():
                 print(f"Adjusting {sentence} for known safe {known_safe}")
 
     def infer_new_sentences(self):
-        # 5) add any new sentences to the AI's knowledge base
-        # if they can be inferred from existing knowledge
+        """
+        5) add any new sentences to the AI's knowledge base
+        if they can be inferred from existing knowledge
+        """
         starting_knowledge = copy.deepcopy(self.knowledge)
         # For each sentence, check if it's a subset of another sentence
         for sentence_1 in starting_knowledge:
@@ -334,7 +339,9 @@ class MinesweeperAI():
                         print(f"New sentence inferred: {new_sentence}")
 
     def remove_stale_sentences(self):
-        # Remove sentences that return empty sets
+        """
+        Remove sentences that return empty sets of cells
+        """
         starting_knowledge = copy.deepcopy(self.knowledge)
         for sentence in starting_knowledge:
             if not sentence.cells:
