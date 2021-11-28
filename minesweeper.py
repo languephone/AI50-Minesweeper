@@ -227,6 +227,7 @@ class MinesweeperAI():
                 new_sentence.cells.remove(safe_cell)
         
         self.knowledge.append(new_sentence)
+        print(f"Adding {new_sentence} based on neighbouring cells")
         
         # Print statements to test logic
         self.show_current_knowledge()
@@ -298,7 +299,6 @@ class MinesweeperAI():
         print(f"Known mines: {self.mines}")
         print(f"Known safes: {self.safes}")
         if self.knowledge:
-            print(f"New sentence: {self.knowledge[-1]}")
             for position, sentence in enumerate(self.knowledge):
                 print(f"Knowledge {position}: {sentence}")
 
@@ -309,8 +309,10 @@ class MinesweeperAI():
         for sentence in starting_knowledge:
             for known_mine in sentence.known_mines():
                 self.mark_mine(known_mine)
+                print(f"Adjusting {sentence} for known mine {known_mine}")
             for known_safe in sentence.known_safes():
                 self.mark_safe(known_safe)
+                print(f"Adjusting {sentence} for known safe {known_safe}")
 
     def infer_new_sentences(self):
         # 5) add any new sentences to the AI's knowledge base
@@ -326,8 +328,10 @@ class MinesweeperAI():
                     unique_set = sentence_2.cells.difference(sentence_1.cells)
                     new_sentence = Sentence(unique_set,
                         sentence_2.count - sentence_1.count)
-                    self.knowledge.append(new_sentence)
-                    print(f"New sentence inferred: {new_sentence}")
+                    # Prevent adding in a duplicate sentence
+                    if new_sentence not in self.knowledge:
+                        self.knowledge.append(new_sentence)
+                        print(f"New sentence inferred: {new_sentence}")
 
     def remove_stale_sentences(self):
         # Remove sentences that return empty sets
@@ -335,6 +339,7 @@ class MinesweeperAI():
         for sentence in starting_knowledge:
             if not sentence.cells:
                 self.knowledge.remove(sentence)
+                print(f"Removing stale sentence {sentence}")
 
     def get_neighbouring_cells(self):
         neighbouring_cells = set()
