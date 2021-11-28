@@ -254,17 +254,7 @@ class MinesweeperAI():
 
         # 5) add any new sentences to the AI's knowledge base
         # if they can be inferred from existing knowledge
-        current_knowledge = copy.deepcopy(self.knowledge)
-        # For each sentence, check if it's a subset of another sentence
-        for sentence_1 in current_knowledge:
-            for sentence_2 in current_knowledge:
-                # Check for subset using '<' symbol, which excludes equal sets
-                if sentence_1.cells < sentence_2.cells:
-                    # If it's a subset, create a new set from the difference
-                    # and set the count equal the difference in count 
-                    unique_set = sentence_2.cells.difference(sentence_1.cells)
-                    new_sentence = Sentence(unique_set,
-                        sentence_2.count - sentence_1.count)
+        self.infer_new_sentences()
 
 
 
@@ -297,10 +287,26 @@ class MinesweeperAI():
                 print(f"Knowledge {position}: {sentence}")
 
     def refresh_knowledge(self):
-        # Mark any additional cells as safe or as mines
+        # 4) Mark any additional cells as safe or as mines
         # if it can be concluded based on the AI's knowledge base
         for sentence in copy.deepcopy(self.knowledge):
             for known_mine in sentence.known_mines():
                 self.mark_mine(known_mine)
             for known_safe in sentence.known_safes():
                 self.mark_safe(known_safe)
+
+    def infer_new_sentences(self):
+        # 5) add any new sentences to the AI's knowledge base
+        # if they can be inferred from existing knowledge
+        current_knowledge = copy.deepcopy(self.knowledge)
+        # For each sentence, check if it's a subset of another sentence
+        for sentence_1 in current_knowledge:
+            for sentence_2 in current_knowledge:
+                # Check for subset using '<' symbol, which excludes equal sets
+                if sentence_1.cells < sentence_2.cells:
+                    # If it's a subset, create a new set from the difference
+                    # and set the count equal the difference in count 
+                    unique_set = sentence_2.cells.difference(sentence_1.cells)
+                    new_sentence = Sentence(unique_set,
+                        sentence_2.count - sentence_1.count)
+                    print(f"New sentence inferred: {new_sentence}")
