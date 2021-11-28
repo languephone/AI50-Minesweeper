@@ -259,7 +259,13 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+        available_moves = self.safes.difference(self.moves_made)
+        if available_moves:
+            # random choice can't work on a set, so convert to list
+            available_moves = list(available_moves)
+            return random.choice(available_moves)
+        else:
+            return None
 
     def make_random_move(self):
         """
@@ -268,7 +274,25 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        raise NotImplementedError
+        
+        # Generate all available spaces
+        available_moves = set()
+        for i in range(self.height):
+            for j in range(self.width):
+                available_moves.add((i, j))
+
+        # Eliminate moves already made
+        available_moves = available_moves.difference(self.moves_made)
+        # Eliminate spaces with mines
+        available_moves = available_moves.difference(self.mines)
+        
+        # random choice can't work on a set, so convert to list
+        available_moves = list(available_moves)
+        
+        if available_moves:
+            return random.choice(available_moves)
+        else:
+            return None
 
     def show_current_knowledge(self):
         print(f"Known mines: {self.mines}")
