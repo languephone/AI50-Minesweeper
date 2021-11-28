@@ -252,6 +252,22 @@ class MinesweeperAI():
         print("Reprinting knowledge after removing stale sentences------------")
         self.show_current_knowledge()
 
+        # 5) add any new sentences to the AI's knowledge base
+        # if they can be inferred from existing knowledge
+        current_knowledge = copy.deepcopy(self.knowledge)
+        # For each sentence, check if it's a subset of another sentence
+        for sentence_1 in current_knowledge:
+            for sentence_2 in current_knowledge:
+                # Check for subset using '<' symbol, which excludes equal sets
+                if sentence_1.cells < sentence_2.cells:
+                    # If it's a subset, create a new set from the difference
+                    # and set the count equal the difference in count 
+                    unique_set = sentence_2.cells.difference(sentence_1.cells)
+                    new_sentence = Sentence(unique_set,
+                        sentence_2.count - sentence_1.count)
+
+
+
     def make_safe_move(self):
         """
         Returns a safe cell to choose on the Minesweeper board.
