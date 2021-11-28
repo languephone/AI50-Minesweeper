@@ -204,19 +204,8 @@ class MinesweeperAI():
         # 1) Add a new sentence to the AI's knowledge base
         # based on the value of `cell` and `count`
         
-        # Get neighbouring cells
-        neighbouring_cells = set()
-        for i in range(cell[0] - 1, cell[0] + 2):
-            for j in range(cell[1] - 1, cell[1] + 2):
-                # Check that cell is within bounds of grid
-                if 0 <= i < self.height and 0 <= j < self.width:
-                    # Prevent adding current cell to set
-                    if (i, j) == cell:
-                        continue
-                    neighbouring_cells.add((i, j))
-        
         # Create new sentence based on neighbouring cells and count
-        new_sentence = Sentence(neighbouring_cells, count)
+        new_sentence = Sentence(self.get_neighbouring_cells(cell), count)
         
         # Remove cells known to be safe or mines
         for mine_cell in self.mines:
@@ -348,7 +337,7 @@ class MinesweeperAI():
                 self.knowledge.remove(sentence)
                 print(f"Removing stale sentence {sentence}")
 
-    def get_neighbouring_cells(self):
+    def get_neighbouring_cells(self, cell):
         neighbouring_cells = set()
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
