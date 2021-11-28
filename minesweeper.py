@@ -193,6 +193,8 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
+        print("Adding knowledge-----------------------------------------------")
+
         # Mark the cell as a move that has been made
         self.moves_made.add(cell)
         
@@ -229,17 +231,17 @@ class MinesweeperAI():
         # Print statements to test logic
         self.show_current_knowledge()
 
-        # Mark any additional cells as safe or as mines
-        # if it can be concluded based on the AI's knowledge base
-        for sentence in copy.deepcopy(self.knowledge):
-            for known_mine in sentence.known_mines():
-                self.mark_mine(known_mine)
-            for known_safe in sentence.known_safes():
-                self.mark_safe(known_safe)
+        # Run the following repeatedly until no changes detected:
+        while True:
+            starting_knowledge = copy.deepcopy(self.knowledge)
+            self.refresh_knowledge()
+            if self.knowledge == starting_knowledge:
+                break
+            print("Completed Loop")
+            # Print statements to test logic
+            print("Reprinting knowledge after updating known/unknown mines--------")
+            self.show_current_knowledge()
 
-        # Print statements to test logic
-        print("Reprinting knowledge after updating known/unknown mines--------")
-        self.show_current_knowledge()
 
         # Remove sentences that return empty sets
         for sentence in copy.deepcopy(self.knowledge):
@@ -277,3 +279,12 @@ class MinesweeperAI():
             print(f"New sentence: {self.knowledge[-1]}")
             for position, sentence in enumerate(self.knowledge):
                 print(f"Knowledge {position}: {sentence}")
+
+    def refresh_knowledge(self):
+        # Mark any additional cells as safe or as mines
+        # if it can be concluded based on the AI's knowledge base
+        for sentence in copy.deepcopy(self.knowledge):
+            for known_mine in sentence.known_mines():
+                self.mark_mine(known_mine)
+            for known_safe in sentence.known_safes():
+                self.mark_safe(known_safe)
