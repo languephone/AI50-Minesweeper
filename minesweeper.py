@@ -235,26 +235,18 @@ class MinesweeperAI():
         while True:
             starting_knowledge = copy.deepcopy(self.knowledge)
             self.refresh_knowledge()
+            self.remove_stale_sentences()
+            self.infer_new_sentences()
             if self.knowledge == starting_knowledge:
                 break
-            print("Completed Loop")
             # Print statements to test logic
-            print("Reprinting knowledge after updating known/unknown mines--------")
+            print("Completed Loop")
+            print("Reprinting knowledge after updating known/unknown mines----")
             self.show_current_knowledge()
-
-
-        # Remove sentences that return empty sets
-        for sentence in copy.deepcopy(self.knowledge):
-            if not sentence.cells:
-                self.knowledge.remove(sentence)
-
-        # Print statements to test logic
-        print("Reprinting knowledge after removing stale sentences------------")
-        self.show_current_knowledge()
-
-        # 5) add any new sentences to the AI's knowledge base
-        # if they can be inferred from existing knowledge
-        self.infer_new_sentences()
+            
+            # Stop loop if going to be infinite
+            if len(self.knowledge) > 20:
+                break
 
 
 
@@ -289,7 +281,8 @@ class MinesweeperAI():
     def refresh_knowledge(self):
         # 4) Mark any additional cells as safe or as mines
         # if it can be concluded based on the AI's knowledge base
-        for sentence in copy.deepcopy(self.knowledge):
+        starting_knowledge = copy.deepcopy(self.knowledge)
+        for sentence in starting_knowledge:
             for known_mine in sentence.known_mines():
                 self.mark_mine(known_mine)
             for known_safe in sentence.known_safes():
@@ -298,10 +291,10 @@ class MinesweeperAI():
     def infer_new_sentences(self):
         # 5) add any new sentences to the AI's knowledge base
         # if they can be inferred from existing knowledge
-        current_knowledge = copy.deepcopy(self.knowledge)
+        starting_knowledge = copy.deepcopy(self.knowledge)
         # For each sentence, check if it's a subset of another sentence
-        for sentence_1 in current_knowledge:
-            for sentence_2 in current_knowledge:
+        for sentence_1 in starting_knowledge:
+            for sentence_2 in starting_knowledge:
                 # Check for subset using '<' symbol, which excludes equal sets
                 if sentence_1.cells < sentence_2.cells:
                     # If it's a subset, create a new set from the difference
@@ -309,4 +302,23 @@ class MinesweeperAI():
                     unique_set = sentence_2.cells.difference(sentence_1.cells)
                     new_sentence = Sentence(unique_set,
                         sentence_2.count - sentence_1.count)
+                    self.knowledge.append(new_sentence)
                     print(f"New sentence inferred: {new_sentence}")
+
+    def remove_stale_sentences(self):
+        # Remove sentences that return empty sets
+        starting_knowledge = copy.deepcopy(self.knowledge)
+        for sentence in starting_knowledge:
+            if not sentence.cells:
+                self.knowledge.remove(sentence)
+
+    def get_neighbouring_cells(self):
+        neighbouring_cells = set()
+        for i in range(cell[0] - 1, cell[0] + 2):
+            for j in range(cell[1] - 1, cell[1] + 2):
+                if 0 <= i < self.height and 0 <= j < self.width:
+                    # Prevent adding current cell to set
+                    if (i, j) == cell:
+                        continue
+                    neighbouring_cells.add((i, j))
+        return neighbouring_cells
