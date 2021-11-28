@@ -1,5 +1,6 @@
 import itertools
 import random
+import copy
 
 
 class Minesweeper():
@@ -105,27 +106,37 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
-        raise NotImplementedError
+        if len(self.cells) == self.count:
+            return self.cells
+        else:
+            return set()
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        raise NotImplementedError
+        if self.count == 0:
+            return self.cells
+        else:
+            return set()
+
 
     def mark_mine(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be a mine.
         """
-        raise NotImplementedError
+        if cell in self.cells:
+            self.cells.remove(cell)
+            self.count -= 1
 
     def mark_safe(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
         """
-        raise NotImplementedError
+        if cell in self.cells:
+            self.cells.remove(cell)
 
 
 class MinesweeperAI():
@@ -182,7 +193,62 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        raise NotImplementedError
+        # Mark the cell as a move that has been made
+        self.moves_made.add(cell)
+        
+        # Mark the cell as safe
+        self.mark_safe(cell)
+
+        # Add a new sentence to the AI's knowledge base
+        # based on the value of `cell` and `count`
+        
+        # Get neighbouring cells
+        neighbouring_cells = set()
+        for i in range(cell[0] - 1, cell[0] + 2):
+            for j in range(cell[1] - 1, cell[1] + 2):
+                if 0 <= i < self.height and 0 <= j < self.width:
+                    # Prevent adding current cell to set
+                    if (i, j) == cell:
+                        continue
+                    neighbouring_cells.add((i, j))
+        
+        # Create new sentence based on neighbouring cells and count
+        new_sentence = Sentence(neighbouring_cells, count)
+        
+        # Remove cells known to be safe or mines
+        for mine_cell in self.mines:
+            if mine_cell in new_sentence.cells:
+                new_sentence.cells.remove(mine_cell)
+                new_sentence.count -= 1
+        for safe_cell in self.safes:
+            if safe_cell in new_sentence.cells:
+                new_sentence.cells.remove(safe_cell)
+        
+        self.knowledge.append(new_sentence)
+        
+        # Print statements to test logic
+        self.show_current_knowledge()
+
+        # Mark any additional cells as safe or as mines
+        # if it can be concluded based on the AI's knowledge base
+        for sentence in copy.deepcopy(self.knowledge):
+            for known_mine in sentence.known_mines():
+                self.mark_mine(known_mine)
+            for known_safe in sentence.known_safes():
+                self.mark_safe(known_safe)
+
+        # Print statements to test logic
+        print("Reprinting knowledge after updating known/unknown mines--------")
+        self.show_current_knowledge()
+
+        # Remove sentences that return empty sets
+        for sentence in copy.deepcopy(self.knowledge):
+            if not sentence.cells:
+                self.knowledge.remove(sentence)
+
+        # Print statements to test logic
+        print("Reprinting knowledge after removing stale sentences------------")
+        self.show_current_knowledge()
 
     def make_safe_move(self):
         """
@@ -203,3 +269,11 @@ class MinesweeperAI():
             2) are not known to be mines
         """
         raise NotImplementedError
+
+    def show_current_knowledge(self):
+        print(f"Known mines: {self.mines}")
+        print(f"Known safes: {self.safes}")
+        if self.knowledge:
+            print(f"New sentence: {self.knowledge[-1]}")
+            for position, sentence in enumerate(self.knowledge):
+                print(f"Knowledge {position}: {sentence}")
